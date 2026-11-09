@@ -6,6 +6,10 @@
              Title="TV Mundial"
              BackgroundColor="{StaticResource AppBackground}">
 
+    <ContentPage.ToolbarItems>
+        <ToolbarItem Text="Salir" Order="Primary" Priority="0" Clicked="OnExitClicked" />
+    </ContentPage.ToolbarItems>
+
     <CollectionView x:Name="CategoriesView"
                     SelectionMode="None"
                     Margin="12,8">

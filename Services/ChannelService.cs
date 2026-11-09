@@ -74,18 +74,27 @@ public class ChannelService
     {
         EnsureFavoritesLoaded();
 
+        // Solo canales en español (de cualquier país): todas las categorías salen de languages/spa.m3u.
         List<Channel> list = category.Kind switch
         {
             CategoryKind.Favorites => _favorites.Values.OrderBy(c => c.Name).ToList(),
-            CategoryKind.Football => (await LoadPlaylistAsync("categories/sports.m3u", forceRefresh))
-                                        .Where(IsFootball).ToList(),
-            CategoryKind.Spanish => await LoadPlaylistAsync("languages/spa.m3u", forceRefresh),
-            _ => await LoadPlaylistAsync($"categories/{category.Id}.m3u", forceRefresh),
+            CategoryKind.Football => (await LoadPlaylistAsync(SpanishPlaylist, forceRefresh))
+                                        .Where(c => InGroup(c, "sports") && IsFootball(c)).ToList(),
+            CategoryKind.Spanish => await LoadPlaylistAsync(SpanishPlaylist, forceRefresh),
+            _ => (await LoadPlaylistAsync(SpanishPlaylist, forceRefresh))
+                    .Where(c => InGroup(c, category.Id)).ToList(),
         };
 
         foreach (var c in list) c.IsFavorite = _favorites.ContainsKey(c.Url);
         return list;
     }
+
+    const string SpanishPlaylist = "languages/spa.m3u";
+
+    // group-title viene como "Movies;Series"; cada parte coincide con el id de la categoría.
+    static bool InGroup(Channel c, string categoryId) =>
+        c.Group.Split(';', StringSplitOptions.TrimEntries)
+            .Any(g => g.Equals(categoryId, StringComparison.OrdinalIgnoreCase));
 
     static bool IsFootball(Channel c)
     {
