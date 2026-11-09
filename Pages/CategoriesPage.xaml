@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:AplicacionTV.Models"
+             x:Class="AplicacionTV.Pages.CategoriesPage"
+             Title="TV Mundial"
+             BackgroundColor="{StaticResource AppBackground}">
+
+    <CollectionView x:Name="CategoriesView"
+                    SelectionMode="None"
+                    Margin="12,8">
+        <CollectionView.Header>
+            <VerticalStackLayout Padding="4,8,4,12" Spacing="2">
+                <Label Text="Elige una categoría" FontSize="22" FontAttributes="Bold" TextColor="White" />
+                <Label Text="Canales gratuitos y públicos de todo el mundo"
+                       FontSize="13" TextColor="{StaticResource MutedText}" />
+            </VerticalStackLayout>
+        </CollectionView.Header>
+        <CollectionView.ItemsLayout>
+            <GridItemsLayout Orientation="Vertical" Span="2" HorizontalItemSpacing="10" VerticalItemSpacing="10" />
+        </CollectionView.ItemsLayout>
+        <CollectionView.ItemTemplate>
+            <DataTemplate x:DataType="m:Category">
+                <Border StrokeThickness="0"
+                        BackgroundColor="{Binding Color}"
+                        HeightRequest="110"
+                        Padding="14">
+                    <Border.StrokeShape>
+                        <RoundRectangle CornerRadius="16" />
+                    </Border.StrokeShape>
+                    <Border.GestureRecognizers>
+                        <TapGestureRecognizer Tapped="OnCategoryTapped" CommandParameter="{Binding .}" />
+                    </Border.GestureRecognizers>
+                    <Grid RowDefinitions="*,Auto">
+                        <Label Text="{Binding Icon}" FontSize="34" />
+                        <Label Grid.Row="1" Text="{Binding Name}" FontSize="16"
+                               FontAttributes="Bold" TextColor="White" />
+                    </Grid>
+                </Border>
+            </DataTemplate>
+        </CollectionView.ItemTemplate>
+        <CollectionView.Footer>
+            <Label Padding="4,16,4,24" FontSize="11" TextColor="{StaticResource MutedText}"
+                   Text="Fuente: listas públicas de iptv-org (github.com/iptv-org/iptv). La disponibilidad de cada canal depende de su emisor." />
+        </CollectionView.Footer>
+    </CollectionView>
+</ContentPage>

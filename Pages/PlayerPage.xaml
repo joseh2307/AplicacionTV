@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:toolkit="http://schemas.microsoft.com/dotnet/2022/maui/toolkit"
+             x:Class="AplicacionTV.Pages.PlayerPage"
+             BackgroundColor="Black">
+
+    <Grid RowDefinitions="*,Auto">
+        <toolkit:MediaElement x:Name="Player"
+                              ShouldAutoPlay="True"
+                              ShouldShowPlaybackControls="True"
+                              ShouldKeepScreenOn="True"
+                              Aspect="AspectFit"
+                              BackgroundColor="Black"
+                              MediaFailed="OnMediaFailed"
+                              StateChanged="OnStateChanged" />
+
+        <ActivityIndicator x:Name="Buffering" IsRunning="True" Color="White"
+                           HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True" />
+
+        <VerticalStackLayout x:Name="ErrorPanel" IsVisible="False" Spacing="14" Padding="24"
+                             HorizontalOptions="Center" VerticalOptions="Center">
+            <Label Text="📡" FontSize="48" HorizontalOptions="Center" />
+            <Label Text="Este canal no está disponible ahora" FontSize="18" FontAttributes="Bold"
+                   TextColor="White" HorizontalTextAlignment="Center" />
+            <Label Text="Puede estar fuera del aire, bloqueado en tu país o requerir otro reproductor."
+                   FontSize="13" TextColor="#94A3B8" HorizontalTextAlignment="Center" />
+            <Button Text="Reintentar" Clicked="OnRetryClicked" BackgroundColor="#2563EB" TextColor="White" />
+            <Button Text="Abrir en otra app (VLC, etc.)" Clicked="OnOpenExternalClicked"
+                    BackgroundColor="#1E293B" TextColor="White" />
+        </VerticalStackLayout>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Padding="14,10" BackgroundColor="#0F172A">
+            <VerticalStackLayout VerticalOptions="Center">
+                <Label x:Name="NameLabel" FontSize="16" FontAttributes="Bold" TextColor="White" />
+                <Label x:Name="InfoLabel" FontSize="12" TextColor="#94A3B8" />
+            </VerticalStackLayout>
+            <Label x:Name="FavLabel" Grid.Column="1" FontSize="30" TextColor="#FACC15" VerticalOptions="Center">
+                <Label.GestureRecognizers>
+                    <TapGestureRecognizer Tapped="OnFavoriteTapped" />
+                </Label.GestureRecognizers>
+            </Label>
+        </Grid>
+    </Grid>
+</ContentPage>

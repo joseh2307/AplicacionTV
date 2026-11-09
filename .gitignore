@@ -1,0 +1,6 @@
+bin/
+obj/
+apk/
+.vs/
+*.user
+*.keystore

@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:m="clr-namespace:AplicacionTV.Models"
+             x:Class="AplicacionTV.Pages.ChannelsPage"
+             BackgroundColor="{StaticResource AppBackground}">
+
+    <Grid RowDefinitions="Auto,Auto,*">
+        <SearchBar x:Name="Search"
+                   Placeholder="Buscar canal..."
+                   TextColor="White"
+                   PlaceholderColor="{StaticResource MutedText}"
+                   CancelButtonColor="White"
+                   TextChanged="OnFilterChanged" />
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Padding="12,0,12,6" ColumnSpacing="8">
+            <Picker x:Name="CountryPicker"
+                    Title="País"
+                    TextColor="White"
+                    TitleColor="{StaticResource MutedText}"
+                    SelectedIndexChanged="OnFilterChanged" />
+            <Label x:Name="CountLabel" Grid.Column="1" VerticalOptions="Center"
+                   FontSize="12" TextColor="{StaticResource MutedText}" />
+        </Grid>
+
+        <RefreshView x:Name="Refresh" Grid.Row="2" Refreshing="OnRefreshing" RefreshColor="White">
+            <CollectionView x:Name="ChannelsView" SelectionMode="None">
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Padding="24,60" Spacing="10" HorizontalOptions="Center">
+                        <ActivityIndicator x:Name="Loading" IsRunning="True" Color="White" />
+                        <Label x:Name="EmptyLabel" Text="Cargando canales..." HorizontalTextAlignment="Center"
+                               TextColor="{StaticResource MutedText}" />
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="m:Channel">
+                        <Grid ColumnDefinitions="56,*,48" Padding="12,8" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnChannelTapped" CommandParameter="{Binding .}" />
+                            </Grid.GestureRecognizers>
+
+                            <Border StrokeThickness="0" BackgroundColor="{StaticResource CardBackground}"
+                                    WidthRequest="56" HeightRequest="56">
+                                <Border.StrokeShape>
+                                    <RoundRectangle CornerRadius="10" />
+                                </Border.StrokeShape>
+                                <Grid>
+                                    <Label Text="{Binding Initial}" FontSize="22" FontAttributes="Bold"
+                                           TextColor="{StaticResource MutedText}"
+                                           HorizontalOptions="Center" VerticalOptions="Center" />
+                                    <Image Source="{Binding Logo}" IsVisible="{Binding HasLogo}"
+                                           Aspect="AspectFit" Margin="4" />
+                                </Grid>
+                            </Border>
+
+                            <VerticalStackLayout Grid.Column="1" VerticalOptions="Center" Spacing="2">
+                                <Label Text="{Binding Name}" FontSize="15" FontAttributes="Bold"
+                                       TextColor="White" LineBreakMode="TailTruncation" />
+                                <Label Text="{Binding Subtitle}" FontSize="12"
+                                       TextColor="{StaticResource MutedText}" LineBreakMode="TailTruncation" />
+                            </VerticalStackLayout>
+
+                            <Label Grid.Column="2" Text="{Binding FavoriteIcon}" FontSize="26"
+                                   TextColor="#FACC15" HorizontalOptions="Center" VerticalOptions="Center">
+                                <Label.GestureRecognizers>
+                                    <TapGestureRecognizer Tapped="OnFavoriteTapped" CommandParameter="{Binding .}" />
+                                </Label.GestureRecognizers>
+                            </Label>
+                        </Grid>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+        </RefreshView>
+    </Grid>
+</ContentPage>
