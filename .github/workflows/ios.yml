@@ -22,10 +22,12 @@ jobs:
         with:
           dotnet-version: '10.0.403'
 
-      - name: Seleccionar el Xcode más reciente
+      # Xcode 26.5 coincide con el SDK de iOS 26.5; si no está, se usa el Xcode predeterminado.
+      - name: Seleccionar Xcode
         run: |
           ls -d /Applications/Xcode*.app
-          XCODE=$(ls -d /Applications/Xcode_*.app | sort -V | tail -1)
+          XCODE=$(ls -d /Applications/Xcode_26.5*.app 2>/dev/null | sort -V | tail -1)
+          [ -z "$XCODE" ] && XCODE=/Applications/Xcode.app
           echo "Usando $XCODE"
           sudo xcode-select -s "$XCODE/Contents/Developer"
           xcodebuild -version
