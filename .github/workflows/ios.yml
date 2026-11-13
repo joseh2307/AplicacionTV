@@ -36,6 +36,7 @@ jobs:
       - name: Compilar
         run: |
           dotnet build AplicacionTV.csproj -f net10.0-ios -c Release \
+            -p:TargetFrameworks=net10.0-ios \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:EnableCodeSigning=false \
             -p:ValidateXcodeVersion=false
