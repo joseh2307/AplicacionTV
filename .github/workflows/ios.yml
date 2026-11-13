@@ -42,7 +42,13 @@ jobs:
             -p:MauiVersion=10.0.110 \
             -p:RuntimeIdentifier=ios-arm64 \
             -p:EnableCodeSigning=false \
-            -p:ValidateXcodeVersion=false
+            -p:ValidateXcodeVersion=false 2>&1 | tee build.log
+          STATUS=${PIPESTATUS[0]}
+          if [ "$STATUS" -ne 0 ]; then
+            dotnet workload list
+            grep -iE "error|xcode" build.log | sort -u | head -30 | sed 's/^/::error::/'
+          fi
+          exit $STATUS
 
       - name: Empaquetar .ipa
         run: |
