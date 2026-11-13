@@ -31,6 +31,14 @@ jobs:
           echo "Usando $XCODE"
           sudo xcode-select -s "$XCODE/Contents/Developer"
           xcodebuild -version
+          sudo xcodebuild -runFirstLaunch
+          xcrun --sdk macosx --show-sdk-path || true
+          xcrun --sdk iphoneos --show-sdk-path || true
+          # actool necesita la plataforma de iOS instalada (en Xcode 26 se descarga aparte).
+          if ! xcrun simctl list runtimes | grep -q "iOS"; then
+            sudo xcodebuild -downloadPlatform iOS
+          fi
+          xcrun simctl list runtimes
 
       # 10.0.401 trae el SDK de iOS 26.5, que coincide con el Xcode de las Mac de GitHub.
       # (Las versiones más nuevas piden Xcode 27.1, que aún no está disponible ahí.)
