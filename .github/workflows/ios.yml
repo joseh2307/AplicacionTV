@@ -39,6 +39,17 @@ jobs:
             sudo xcodebuild -downloadPlatform iOS
           fi
           xcrun simctl list runtimes
+          DEV="$XCODE/Contents/Developer"
+          echo "::warning::SDKs macOS: $(ls $DEV/Platforms/MacOSX.platform/Developer/SDKs 2>&1 | tr '\n' ' ')"
+          echo "::warning::SDKs iOS: $(ls $DEV/Platforms/iPhoneOS.platform/Developer/SDKs 2>&1 | tr '\n' ' ')"
+          echo "::warning::actool: $(ls $DEV/usr/bin/actool 2>&1) | SDKROOT=${SDKROOT:-vacio}"
+          # Si falta el enlace MacOSX.sdk, lo creamos apuntando al SDK de macOS que exista.
+          SDKS="$DEV/Platforms/MacOSX.platform/Developer/SDKs"
+          if [ ! -e "$SDKS/MacOSX.sdk" ]; then
+            REAL=$(ls -d $SDKS/MacOSX*.sdk 2>/dev/null | head -1)
+            if [ -n "$REAL" ]; then sudo ln -s "$REAL" "$SDKS/MacOSX.sdk"; fi
+          fi
+          echo "SDKROOT=$(xcrun --sdk iphoneos --show-sdk-path)" >> $GITHUB_ENV
 
       # 10.0.401 trae el SDK de iOS 26.5, que coincide con el Xcode de las Mac de GitHub.
       # (Las versiones más nuevas piden Xcode 27.1, que aún no está disponible ahí.)
