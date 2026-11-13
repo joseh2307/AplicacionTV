@@ -41,8 +41,13 @@ En esta PC se usa `build-apk.ps1`, que apunta a un SDK portátil en `D:\DevTools
 
 ### iOS
 
-Compilar para iPhone requiere una **Mac con Xcode** (enlazada desde Visual Studio o directamente) y una cuenta de Apple Developer para firmar e instalar:
+Apple no permite instalar un APK ni compilar apps de iPhone en Windows. Por eso este repositorio compila la app en una Mac de GitHub (GitHub Actions, archivo `.github/workflows/ios.yml`) cada vez que se suben cambios, y publica **`TVMundial.ipa`** en la sección **Releases** (etiqueta `ios-latest`).
 
-```bash
-dotnet publish AplicacionTV.csproj -f net10.0-ios -c Release
-```
+El `.ipa` sale sin firmar. Para instalarlo en el iPhone:
+
+1. En una PC con Windows instala [Sideloadly](https://sideloadly.io) e iTunes (versión de apple.com).
+2. Descarga `TVMundial.ipa` desde *Releases* → `ios-latest`.
+3. Conecta el iPhone por cable, arrastra el `.ipa` a Sideloadly e inicia sesión con tu Apple ID.
+4. En el iPhone: *Ajustes → General → VPN y gestión de dispositivos* → confía en tu Apple ID. En iOS 16 o superior activa también *Ajustes → Privacidad y seguridad → Modo de desarrollador*.
+
+Con un Apple ID gratuito la app caduca cada **7 días** y hay que volver a instalarla desde Sideloadly. Con una cuenta de Apple Developer de pago (99 USD al año) dura 1 año.

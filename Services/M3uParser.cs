@@ -37,9 +37,12 @@ public static partial class M3uParser
                         case "group-title": current.Group = val; break;
                         case "http-user-agent": current.UserAgent = val; break;
                         case "http-referrer": current.Referrer = val; break;
+                        case "tvg-country": current.CountryCode = FirstCode(val); break;
+                        case "tvg-language": current.Language = val; break;
                     }
                 }
-                current.CountryCode = ExtractCountry(current.TvgId);
+                if (string.IsNullOrEmpty(current.CountryCode))
+                    current.CountryCode = ExtractCountry(current.TvgId);
             }
             else if (line.StartsWith("#EXTVLCOPT", StringComparison.OrdinalIgnoreCase) && current != null)
             {
@@ -68,6 +71,14 @@ public static partial class M3uParser
             else if (line[i] == ',' && !inQuotes) return i;
         }
         return -1;
+    }
+
+    // tvg-country puede venir como "CR" o "CR;US": tomamos el primero.
+    static string FirstCode(string value)
+    {
+        var code = value.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                        .FirstOrDefault() ?? "";
+        return code.Length == 2 ? code.ToUpperInvariant() : "";
     }
 
     // tvg-id tiene la forma "NombreCanal.mx@SD" → "MX"

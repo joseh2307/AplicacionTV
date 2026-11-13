@@ -1,5 +1,6 @@
 ﻿using Android.App;
 using Android.Runtime;
+using AplicacionTV.Pages;
 
 namespace AplicacionTV;
 
@@ -11,5 +12,23 @@ public class MainApplication : MauiApplication
 	{
 	}
 
-	protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
+	protected override MauiApp CreateMauiApp()
+	{
+		// Si un canal provoca un error mientras se reproduce, no cerramos la app:
+		// se avisa al usuario y se regresa a la lista de canales.
+		AndroidEnvironment.UnhandledExceptionRaiser += (_, e) =>
+		{
+			if (PlayerPage.Current is { } player)
+			{
+				e.Handled = true;
+				player.ReportFailure();
+			}
+		};
+		TaskScheduler.UnobservedTaskException += (_, e) =>
+		{
+			e.SetObserved();
+			PlayerPage.Current?.ReportFailure();
+		};
+		return MauiProgram.CreateMauiApp();
+	}
 }

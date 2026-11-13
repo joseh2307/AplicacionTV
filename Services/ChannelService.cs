@@ -78,10 +78,10 @@ public class ChannelService
         List<Channel> list = category.Kind switch
         {
             CategoryKind.Favorites => _favorites.Values.OrderBy(c => c.Name).ToList(),
-            CategoryKind.Football => (await LoadPlaylistAsync(SpanishPlaylist, forceRefresh))
+            CategoryKind.Football => (await LoadSpanishAsync(forceRefresh))
                                         .Where(c => InGroup(c, "sports") && IsFootball(c)).ToList(),
-            CategoryKind.Spanish => await LoadPlaylistAsync(SpanishPlaylist, forceRefresh),
-            _ => (await LoadPlaylistAsync(SpanishPlaylist, forceRefresh))
+            CategoryKind.Spanish => await LoadSpanishAsync(forceRefresh),
+            _ => (await LoadSpanishAsync(forceRefresh))
                     .Where(c => InGroup(c, category.Id)).ToList(),
         };
 
@@ -90,6 +90,33 @@ public class ChannelService
     }
 
     const string SpanishPlaylist = "languages/spa.m3u";
+
+    // Listas adicionales: de ellas solo se agregan canales en español que aún no existan.
+    static readonly string[] ExtraPlaylists =
+    {
+        "https://cdn.jsdelivr.net/gh/streamline-iptv/iptv-playlists@dist/countries/cr.m3u",
+        "https://cdn.jsdelivr.net/gh/streamline-iptv/iptv-playlists@dist/index.m3u",
+        "https://iptv-org.github.io/iptv/categories/sports.m3u",
+    };
+
+    List<Channel>? _spanish;
+
+    async Task<List<Channel>> LoadSpanishAsync(bool forceRefresh)
+    {
+        if (!forceRefresh && _spanish != null) return _spanish;
+
+        var primary = await LoadPlaylistAsync(SpanishPlaylist, forceRefresh);
+        var extras = await Task.WhenAll(ExtraPlaylists.Select(async url =>
+        {
+            try { return await LoadPlaylistAsync(url, forceRefresh); }
+            catch { return new List<Channel>(); } // si una lista extra falla, seguimos con las demás
+        }));
+
+        _spanish = ChannelMerger.Merge(primary, extras)
+            .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ToList();
+        return _spanish;
+    }
 
     // group-title viene como "Movies;Series"; cada parte coincide con el id de la categoría.
     static bool InGroup(Channel c, string categoryId) =>
@@ -106,7 +133,9 @@ public class ChannelService
     {
         if (!forceRefresh && _memory.TryGetValue(path, out var cached)) return cached;
 
-        var cacheFile = Path.Combine(FileSystem.CacheDirectory, path.Replace('/', '_'));
+        var url = path.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? path : BaseUrl + path;
+        var fileName = new string(path.Select(ch => char.IsLetterOrDigit(ch) || ch == '.' ? ch : '_').ToArray());
+        var cacheFile = Path.Combine(FileSystem.CacheDirectory, fileName);
         string? content = null;
 
         if (!forceRefresh && File.Exists(cacheFile) &&
@@ -119,7 +148,7 @@ public class ChannelService
         {
             try
             {
-                content = await _http.GetStringAsync(BaseUrl + path);
+                content = await _http.GetStringAsync(url);
                 await File.WriteAllTextAsync(cacheFile, content);
             }
             catch when (File.Exists(cacheFile))
@@ -171,6 +200,8 @@ public class ChannelService
         foreach (var c in _favorites.Values)
         {
             sb.Append($"#EXTINF:-1 tvg-id=\"{c.TvgId}\" tvg-logo=\"{c.Logo}\" group-title=\"{c.Group}\"");
+            if (!string.IsNullOrEmpty(c.CountryCode)) sb.Append($" tvg-country=\"{c.CountryCode}\"");
+            if (!string.IsNullOrEmpty(c.Language)) sb.Append($" tvg-language=\"{c.Language}\"");
             if (!string.IsNullOrEmpty(c.UserAgent)) sb.Append($" http-user-agent=\"{c.UserAgent}\"");
             if (!string.IsNullOrEmpty(c.Referrer)) sb.Append($" http-referrer=\"{c.Referrer}\"");
             sb.Append(',').Append(c.Name).Append('\n').Append(c.Url).Append('\n');

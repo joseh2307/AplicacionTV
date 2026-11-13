@@ -12,6 +12,8 @@ public class Channel : INotifyPropertyChanged
     public string Group { get; set; } = "";
     public string TvgId { get; set; } = "";
     public string CountryCode { get; set; } = "";
+    /// <summary>Códigos de idioma de tvg-language, por ejemplo "spa" o "spa;eng".</summary>
+    public string Language { get; set; } = "";
     public string? UserAgent { get; set; }
     public string? Referrer { get; set; }
 
