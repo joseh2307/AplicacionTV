@@ -16,7 +16,8 @@
                               StateChanged="OnStateChanged"
                               HandlerChanged="OnPlayerHandlerChanged" />
 
-        <ActivityIndicator x:Name="Buffering" IsRunning="True" Color="White"
+        <ActivityIndicator x:Name="Buffering" IsRunning="True" Color="#38BDF8"
+                           WidthRequest="64" HeightRequest="64" ZIndex="10"
                            HorizontalOptions="Center" VerticalOptions="Center" InputTransparent="True" />
 
         <Grid x:Name="InfoBar" Grid.Row="1" ColumnDefinitions="*,Auto" Padding="14,10" BackgroundColor="#0F172A">

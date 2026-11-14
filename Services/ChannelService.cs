@@ -97,6 +97,10 @@ public class ChannelService
         "https://cdn.jsdelivr.net/gh/streamline-iptv/iptv-playlists@dist/countries/cr.m3u",
         "https://cdn.jsdelivr.net/gh/streamline-iptv/iptv-playlists@dist/index.m3u",
         "https://iptv-org.github.io/iptv/categories/sports.m3u",
+        "https://iptv-org.github.io/iptv/countries/cr.m3u",
+        "https://iptv-org.github.io/iptv/index.m3u",
+        "https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8",
+        "https://raw.githubusercontent.com/IamJony/IPTVListaLibre/main/es_unificado.m3u",
     };
 
     List<Channel>? _spanish;

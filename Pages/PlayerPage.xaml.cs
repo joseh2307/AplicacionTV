@@ -53,7 +53,8 @@ public partial class PlayerPage : ContentPage
     {
         MainThread.BeginInvokeOnMainThread(() =>
         {
-            var busy = e.NewState is MediaElementState.Opening or MediaElementState.Buffering;
+            // El spinner se ve desde que se toca el canal hasta que empieza la imagen.
+            var busy = !_failed && e.NewState is not (MediaElementState.Playing or MediaElementState.Paused);
             Buffering.IsRunning = busy;
             Buffering.IsVisible = busy;
             if (e.NewState == MediaElementState.Playing) _timeoutCts?.Cancel();
@@ -62,6 +63,39 @@ public partial class PlayerPage : ContentPage
     }
 
     void OnMediaFailed(object? sender, MediaFailedEventArgs e) => ReportFailure();
+
+    // ---------- Ventana flotante (Picture-in-Picture) ----------
+
+    public bool IsPlaying => Player.CurrentState == MediaElementState.Playing;
+
+    /// <summary>En la ventana flotante solo se ve el video, sin barras ni controles.</summary>
+    public void SetPipMode(bool pip)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            InfoBar.IsVisible = !pip;
+            NavigationPage.SetHasNavigationBar(this, !pip);
+            Player.ShouldShowPlaybackControls = !pip;
+        });
+    }
+
+    /// <summary>El usuario cerró la ventana flotante con la "X": se detiene el canal.</summary>
+    public void CloseFromPip()
+    {
+        MainThread.BeginInvokeOnMainThread(async () =>
+        {
+            if (_closing) return;
+            _timeoutCts?.Cancel();
+            try { Player.Stop(); } catch { }
+            SetPipMode(false);
+            try
+            {
+                if (Navigation.NavigationStack.LastOrDefault() == this)
+                    await Navigation.PopAsync(false);
+            }
+            catch { }
+        });
+    }
 
     /// <summary>
     /// El canal no se pudo reproducir: avisa al usuario y regresa a la lista de canales
@@ -129,8 +163,27 @@ public partial class PlayerPage : ContentPage
             // Se suma al manejador del toolkit (que oculta las barras del sistema).
             playerView.FullscreenButtonClick += (_, args) => SetLandscape(args.P0); // P0 = isFullScreen
         }
+#elif IOS
+        // Ventana flotante en iPhone: al salir de la app el video sigue en un recuadro
+        // (lo maneja iOS: se puede mover, cambiar de tamaño y cerrar).
+        if (Player.Handler?.PlatformView is UIKit.UIView root &&
+            FindPlayerController(root) is AVKit.AVPlayerViewController controller)
+        {
+            controller.AllowsPictureInPicturePlayback = true;
+            controller.CanStartPictureInPictureAutomaticallyFromInline = true;
+        }
 #endif
     }
+
+#if IOS
+    static AVKit.AVPlayerViewController? FindPlayerController(UIKit.UIView view)
+    {
+        if (view.NextResponder is AVKit.AVPlayerViewController vc) return vc;
+        foreach (var child in view.Subviews)
+            if (FindPlayerController(child) is { } found) return found;
+        return null;
+    }
+#endif
 
 #if ANDROID
     static AndroidX.Media3.UI.PlayerView? FindPlayerView(Android.Views.View view)

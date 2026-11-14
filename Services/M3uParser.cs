@@ -24,7 +24,7 @@ public static partial class M3uParser
                 current = new Channel();
                 var comma = FindTitleComma(line);
                 var header = comma >= 0 ? line[..comma] : line;
-                current.Name = comma >= 0 ? line[(comma + 1)..].Trim() : "Canal";
+                current.Name = comma >= 0 ? CleanName(line[(comma + 1)..]) : "Canal";
 
                 foreach (Match m in AttrRegex().Matches(header))
                 {
@@ -43,6 +43,8 @@ public static partial class M3uParser
                 }
                 if (string.IsNullOrEmpty(current.CountryCode))
                     current.CountryCode = ExtractCountry(current.TvgId);
+                if (string.IsNullOrEmpty(current.CountryCode))
+                    current.CountryCode = CountryFromFlag(current.Group); // p. ej. "🇨🇷 Costa Rica"
             }
             else if (line.StartsWith("#EXTVLCOPT", StringComparison.OrdinalIgnoreCase) && current != null)
             {
@@ -59,6 +61,23 @@ public static partial class M3uParser
             }
         }
         return result;
+    }
+
+    // Quita marcas como "Ⓢ", "Ⓖ" o "Ⓨ" que algunas listas agregan al final del nombre.
+    static string CleanName(string name)
+    {
+        var chars = name.Where(ch => ch < 'Ⓐ' || ch > 'ⓩ').ToArray();
+        var clean = new string(chars).Trim();
+        return clean.Length == 0 ? "Canal" : clean;
+    }
+
+    // Convierte una bandera emoji (dos "indicadores regionales") en su código de país.
+    static string CountryFromFlag(string text)
+    {
+        var runes = text.EnumerateRunes().Take(2).ToArray();
+        if (runes.Length == 2 && runes.All(r => r.Value is >= 0x1F1E6 and <= 0x1F1FF))
+            return new string(runes.Select(r => (char)('A' + r.Value - 0x1F1E6)).ToArray());
+        return "";
     }
 
     // La coma que separa atributos del título es la primera coma fuera de comillas.
