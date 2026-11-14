@@ -135,6 +135,9 @@ public partial class PlayerPage : ContentPage
     {
         base.OnAppearing();
         Current = this;
+#if ANDROID
+        MainActivity.SetPipEnabled(true);
+#endif
     }
 
     protected override void OnDisappearing()
@@ -142,6 +145,9 @@ public partial class PlayerPage : ContentPage
         base.OnDisappearing();
         _closing = true;
         if (Current == this) Current = null;
+#if ANDROID
+        MainActivity.SetPipEnabled(false);
+#endif
         _timeoutCts?.Cancel();
         SetLandscape(false);
         try

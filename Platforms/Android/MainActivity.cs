@@ -12,22 +12,45 @@ namespace AplicacionTV;
 	ConfigurationChanges = ConfigChanges.ScreenSize | ConfigChanges.Orientation | ConfigChanges.UiMode | ConfigChanges.ScreenLayout | ConfigChanges.SmallestScreenSize | ConfigChanges.Density)]
 public class MainActivity : MauiAppCompatActivity
 {
-	// Al ir a otra app (botón de inicio o de recientes) mientras se ve un canal,
-	// la app se minimiza a una ventana flotante (Picture-in-Picture).
-	// El sistema permite agrandarla/achicarla con los dedos y cerrarla con su "X".
+	/// <summary>
+	/// Activa o desactiva la ventana flotante automática. Se activa mientras se ve un canal:
+	/// al ir a otra app (inicio, recientes o gesto) el video pasa a un recuadro pequeño que
+	/// el sistema permite agrandar/achicar con los dedos y cerrar con su "X".
+	/// </summary>
+	public static void SetPipEnabled(bool enabled)
+	{
+		if (!OperatingSystem.IsAndroidVersionAtLeast(26)) return;
+		if (Platform.CurrentActivity is not MainActivity activity) return;
+		try
+		{
+			activity._pipEnabled = enabled;
+			if (OperatingSystem.IsAndroidVersionAtLeast(31))
+				activity.SetPictureInPictureParams(activity.BuildPipParams(enabled));
+		}
+		catch { /* el dispositivo no soporta la ventana flotante */ }
+	}
+
+	bool _pipEnabled;
+
+	PictureInPictureParams BuildPipParams(bool autoEnter)
+	{
+		var builder = new PictureInPictureParams.Builder().SetAspectRatio(new Rational(16, 9))!;
+		if (OperatingSystem.IsAndroidVersionAtLeast(31))
+		{
+			builder.SetAutoEnterEnabled(autoEnter);
+			builder.SetSeamlessResizeEnabled(true);
+		}
+		return builder.Build()!;
+	}
+
+	// Android 8 a 11 (y respaldo en 12+): al salir de la app se pide la ventana flotante.
 	protected override void OnUserLeaveHint()
 	{
 		base.OnUserLeaveHint();
-		if (!OperatingSystem.IsAndroidVersionAtLeast(26)) return;
-		if (PlayerPage.Current is not { IsPlaying: true }) return;
-		try
-		{
-			var pipParams = new PictureInPictureParams.Builder()
-				.SetAspectRatio(new Rational(16, 9))!
-				.Build();
-			EnterPictureInPictureMode(pipParams!);
-		}
-		catch { /* el dispositivo no soporta la ventana flotante */ }
+		if (!_pipEnabled || !OperatingSystem.IsAndroidVersionAtLeast(26)) return;
+		if (IsInPictureInPictureMode) return;
+		try { EnterPictureInPictureMode(BuildPipParams(true)); }
+		catch { /* el usuario desactivó la ventana flotante para esta app */ }
 	}
 
 	public override void OnPictureInPictureModeChanged(bool isInPictureInPictureMode, Configuration? newConfig)
